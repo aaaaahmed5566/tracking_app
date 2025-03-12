@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+import 'home_tab.dart';
+import 'student_registration_screen.dart';
+import 'evaluation_screen.dart';
+import 'search_student_screen.dart';
+import 'subjects_screen.dart';
+import 'settings_screen.dart';
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+  
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int currentIndex = 0;
+  final List<Widget> pages = const [
+    HomeTab(),
+    StudentRegistrationScreen(),
+    EvaluationScreen(),
+    SearchStudentScreen(),
+    SubjectsScreen(),
+    SettingsScreen(),
+  ];
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: currentIndex,
+        children: pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'الرئيسية'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_add), label: 'تسجيل الطلاب'),
+          BottomNavigationBarItem(icon: Icon(Icons.assessment), label: 'التقييم'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'بحث الطالب'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'المواد'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'الإعدادات'),
+        ],
+      ),
+    );
+  }
+}
