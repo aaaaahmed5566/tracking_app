@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'signup_screen.dart'; // تأكد من وجود صفحة SignUpScreen
+import '../auth/signup_screen.dart'; // تأكد من وجود صفحة SignUpScreen
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

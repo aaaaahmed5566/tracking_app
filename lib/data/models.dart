@@ -1,4 +1,4 @@
-import '../database.dart' as db; // ✅ تأكد من استيراد ملف قاعدة البيانات
+import 'database.dart' as db; // ✅ تأكد من استيراد ملف قاعدة البيانات
 
 // ✅ تحديث `ClassGroup` ليحتوي على `id`
 class ClassGroup {

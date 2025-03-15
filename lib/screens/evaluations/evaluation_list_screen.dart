@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models.dart';
+import '../../data/models.dart';
 import 'students_evaluation_screen.dart';
 
 

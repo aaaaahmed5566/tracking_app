@@ -1,49 +1,39 @@
 import 'package:flutter/material.dart';
-import '../database.dart' as db;
-import '../models.dart';
+import '../../data/database.dart' as db;
+import '../../data/models.dart';
 import 'test_subjects_screen.dart';
 
 class TestsScreen extends StatefulWidget {
   const TestsScreen({super.key});
 
   @override
-  _TestsScreenState createState() => _TestsScreenState();
+  State<TestsScreen> createState() => _TestsScreenState();
 }
 
 class _TestsScreenState extends State<TestsScreen> {
-  final db.AppDatabase database = db.AppDatabase(); // قاعدة البيانات
-  List<ClassGroup> groups = []; // قائمة الفصول
-  bool isLoading = true; // حالة تحميل البيانات
+  final db.AppDatabase database = db.AppDatabase(); // ✅ قاعدة البيانات
+  List<ClassGroup> groups = []; // ✅ قائمة الفصول
+  bool isLoading = true; // ✅ حالة تحميل البيانات
 
   @override
   void initState() {
     super.initState();
-    _loadGroups(); // تحميل الفصول عند فتح الشاشة
+    _loadGroups(); // ✅ تحميل الفصول عند فتح الشاشة
   }
 
   Future<void> _loadGroups() async {
-    List<db.Student> students = await database.getStudents(); // جلب الطلاب من قاعدة البيانات
-    Map<String, List<db.Student>> tempGroups = {};
-
-    for (var student in students) {
-      String key = "${student.grade}-${student.section}"; // تصنيف الطلاب حسب الصف والفصل
-      tempGroups.putIfAbsent(key, () => []);
-      tempGroups[key]!.add(student);
-    }
+    List<db.Group> dbGroups = await database.getGroups(); // ✅ جلب المجموعات من قاعدة البيانات
 
     setState(() {
-      groups = tempGroups.keys
-          .map((key) {
-            var parts = key.split('-');
-            return ClassGroup(
-              id: key.hashCode, // توليد ID فريد
-              grade: parts[0],
-              section: parts[1],
-              subjects: [], // تحتاج إلى تحديث بناءً على المواد المسجلة
-            );
-          })
+      groups = dbGroups
+          .map((group) => ClassGroup(
+                id: group.id,
+                grade: group.grade,
+                section: group.section,
+                subjects: [], // ✅ المواد تحتاج إلى تحديث لاحقًا
+              ))
           .toList();
-      isLoading = false; // إيقاف تحميل البيانات
+      isLoading = false; // ✅ إيقاف تحميل البيانات
     });
   }
 
@@ -52,7 +42,7 @@ class _TestsScreenState extends State<TestsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("إدارة الاختبارات")),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator()) // عرض مؤشر تحميل
+          ? const Center(child: CircularProgressIndicator()) // ✅ عرض مؤشر تحميل
           : groups.isEmpty
               ? const Center(
                   child: Text(

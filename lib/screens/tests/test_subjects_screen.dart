@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models.dart';
+import '../../data/models.dart';
 import 'test_list_screen.dart';
 
 class TestSubjectsScreen extends StatelessWidget {

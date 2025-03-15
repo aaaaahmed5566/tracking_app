@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart'; // ✅ إضافة هذا
 import 'theme.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

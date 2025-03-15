@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../database.dart';
-import 'main_screen.dart';
+import 'package:drift/drift.dart' as drift; // ✅ استيراد Drift
+import '../../data/database.dart';
+import '../home/main_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -18,23 +19,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _eduAdminController = TextEditingController();
   final TextEditingController _schoolNameController = TextEditingController();
 
-  // بيانات المجموعة: الصف والفصل فقط
+  // بيانات الصف والفصل والمواد
   final TextEditingController _gradeController = TextEditingController();
   final TextEditingController _sectionController = TextEditingController();
-  
-  // حقل لإدخال المواد التي تُضاف للمجموعة
   final TextEditingController _subjectController = TextEditingController();
-  final List<String> _groupSubjects = [];
 
-  // حالة بيانات المعلم
+  late Future<List<Group>> groupsFuture;
+
   bool _teacherDataSaved = false;
   Map<String, String> teacherData = {};
-  late Future<List<Student>> studentsFuture;
 
   @override
   void initState() {
     super.initState();
-    studentsFuture = database.getStudents(); // ✅ تحميل بيانات الطلاب من قاعدة البيانات
+    _loadGroups();
+  }
+
+  void _loadGroups() {
+    setState(() {
+      groupsFuture = database.getGroups();
+    });
   }
 
   @override
@@ -49,6 +53,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  // حفظ بيانات المعلم
   void _saveTeacherData() {
     if (_teacherNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,6 +72,76 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
+  // إضافة مجموعة جديدة (صف + فصل)
+  void _addGroup() async {
+    String grade = _gradeController.text.trim();
+    String section = _sectionController.text.trim();
+
+    if (grade.isEmpty || section.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("الرجاء إدخال الصف والفصل")),
+      );
+      return;
+    }
+
+    bool exists = await database.isGroupExists(grade, section);
+    if (exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("هذه المجموعة مسجلة مسبقًا")),
+      );
+      return;
+    }
+
+    int groupId = await database.addGroup(GroupsCompanion(
+      grade: drift.Value(grade),
+      section: drift.Value(section),
+    ));
+
+    setState(() {
+      _gradeController.clear();
+      _sectionController.clear();
+      _loadGroups();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("تمت إضافة المجموعة بنجاح")),
+    );
+  }
+
+  // حذف مجموعة
+  void _deleteGroup(int groupId) async {
+    await database.deleteGroup(groupId);
+    _loadGroups();
+  }
+
+  // إضافة مادة لمجموعة معينة
+  void _addSubject(int groupId) async {
+    String subject = _subjectController.text.trim();
+    if (subject.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("الرجاء إدخال اسم المادة")),
+      );
+      return;
+    }
+
+    await database.addSubject(SubjectsCompanion(
+      groupId: drift.Value(groupId),
+      name: drift.Value(subject),
+    ));
+
+    setState(() {
+      _subjectController.clear();
+      _loadGroups();
+    });
+  }
+
+  // حذف مادة من مجموعة
+  void _deleteSubject(int subjectId) async {
+    await database.deleteSubject(subjectId);
+    _loadGroups();
+  }
+
+  // حفظ جميع البيانات والانتقال للصفحة الرئيسية
   void _saveAllData() {
     if (!_teacherDataSaved) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -74,6 +149,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       return;
     }
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const MainScreen()),
@@ -116,68 +192,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(height: 8),
                       TextField(controller: _teacherNameController, decoration: const InputDecoration(labelText: "اسم المعلم *")),
                       const SizedBox(height: 8),
-                      TextField(controller: _eduAdminController, decoration: const InputDecoration(labelText: "إدارة التعليم (اختياري)")),
-                      const SizedBox(height: 8),
-                      TextField(controller: _teacherEmailController, decoration: const InputDecoration(labelText: "البريد الإلكتروني (اختياري)")),
-                      const SizedBox(height: 8),
-                      TextField(controller: _schoolNameController, decoration: const InputDecoration(labelText: "اسم المدرسة (اختياري)")),
-                      const SizedBox(height: 8),
                       ElevatedButton(onPressed: _saveTeacherData, child: const Text("حفظ بيانات المعلم")),
                     ],
                   ),
+
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 16),
 
-            // ✅ عرض المجموعات المسجلة من قاعدة البيانات
-            const Text("بيانات الصفوف والفصول", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            // ✅ إدخال بيانات الصف والفصل
+            const Text("إضافة صفوف وفصول", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 8),
-            FutureBuilder<List<Student>>(
-              future: studentsFuture,
+            TextField(controller: _gradeController, decoration: const InputDecoration(labelText: "الصف")),
+            const SizedBox(height: 8),
+            TextField(controller: _sectionController, decoration: const InputDecoration(labelText: "الفصل")),
+            const SizedBox(height: 8),
+            ElevatedButton(onPressed: _addGroup, child: const Text("إضافة المجموعة")),
+
+            const SizedBox(height: 16),
+            const Text("المجموعات المسجلة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 8),
+
+            // ✅ عرض المجموعات مع المواد
+            FutureBuilder<List<Group>>(
+              future: groupsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return const Center(child: Text("حدث خطأ أثناء تحميل البيانات"));
+                  return const CircularProgressIndicator();
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("لا توجد مجموعات مسجلة"));
+                  return const Text("لا توجد مجموعات مسجلة");
                 }
 
-                Map<String, List<Student>> groupedStudents = {};
-                for (var student in snapshot.data!) {
-                  String key = "${student.grade}-${student.section}";
-                  groupedStudents.putIfAbsent(key, () => []).add(student);
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: groupedStudents.keys.length,
-                  itemBuilder: (context, index) {
-                    String groupKey = groupedStudents.keys.elementAt(index);
-                    List<Student> groupStudents = groupedStudents[groupKey]!;
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      child: ListTile(
-                        title: Text("الصف: ${groupKey.split('-')[0]} - الفصل: ${groupKey.split('-')[1]}"),
-                        subtitle: Text("عدد الطلاب: ${groupStudents.length}"),
-                        trailing: const Icon(Icons.arrow_forward_ios),
+                return Column(
+                  children: snapshot.data!.map((group) {
+                    return ListTile(
+                      title: Text("الصف: ${group.grade} - الفصل: ${group.section}"),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _deleteGroup(group.id),
                       ),
                     );
-                  },
+                  }).toList(),
                 );
               },
             ),
 
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveAllData,
-                child: const Text("حفظ والانتقال للصفحة الرئيسية"),
-              ),
-            ),
+            ElevatedButton(onPressed: _saveAllData, child: const Text("حفظ والانتقال للصفحة الرئيسية")),
           ],
         ),
       ),

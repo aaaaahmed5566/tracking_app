@@ -7,15 +7,33 @@ import 'dart:io';
 
 part 'database.g.dart';
 
+
+// جدول المجموعات (الصف + الفصل)
+@DataClassName("Group")
+class Groups extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get grade => text().withLength(min: 1, max: 10)();
+  TextColumn get section => text().withLength(min: 1, max: 10)();
+}
+
 // جدول الطلاب
 @DataClassName("Student")
 class Students extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 50)(); // ✅ اسم الطالب (إجباري)
+  IntColumn get groupId => integer().references(Groups, #id)(); // ✅ ربط الطالب بالمجموعة
+  TextColumn get parentPhone => text().nullable()(); // ✅ رقم ولي الأمر (اختياري)
+  TextColumn get notes => text().nullable()(); // ✅ ملاحظات (اختياري)
+  BoolColumn get isPresent => boolean().withDefault(const Constant(true))(); // ✅ الحضور الافتراضي
+}
+
+
+
+@DataClassName("Subject")
+class Subjects extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(Groups, #id)(); // ✅ ربط المادة بالمجموعة
   TextColumn get name => text().withLength(min: 1, max: 50)();
-  TextColumn get grade => text().withLength(min: 1, max: 10)();
-  TextColumn get section => text().withLength(min: 1, max: 10)();
-  BoolColumn get isPresent => boolean().withDefault(const Constant(true))();
-  TextColumn get notes => text().nullable()();
 }
 
 // جدول التقييمات
@@ -46,7 +64,7 @@ class TestScores extends Table {
   IntColumn get score => integer()();
 }
 
-@DriftDatabase(tables: [Students, Evaluations, Tests, TestScores])
+@DriftDatabase(tables: [Students, Evaluations, Tests, TestScores, Groups, Subjects])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -57,7 +75,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> addStudent(StudentsCompanion student) => into(students).insert(student);
 
   // ✅ جلب جميع الطلاب
-  Future<List<Student>> getStudents() => select(students).get();
+  // ✅ جلب جميع الطلاب المرتبطين بمجموعة معينة
+Future<List<Student>> getStudentsForGroup(int groupId) {
+  return (select(students)..where((s) => s.groupId.equals(groupId))).get();
+}
 
   // ✅ تحديث بيانات طالب معين
   Future<bool> updateStudent(Student student) async {
@@ -70,6 +91,7 @@ class AppDatabase extends _$AppDatabase {
     return updatedRows > 0;
   }
 
+  
   // ✅ حذف طالب معين
   Future<bool> deleteStudent(int id) async {
     int deletedRows = await (delete(students)..where((tbl) => tbl.id.equals(id))).go();
@@ -96,6 +118,41 @@ class AppDatabase extends _$AppDatabase {
 
   // ✅ جلب جميع درجات الاختبارات
   Future<List<TestScore>> getTestScores() => select(testScores).get();
+
+
+  // ✅ إضافة مجموعة جديدة
+// ✅ إضافة مجموعة جديدة
+Future<int> addGroup(GroupsCompanion group) => into(groups).insert(group);
+
+// ✅ جلب جميع المجموعات
+Future<List<Group>> getGroups() => select(groups).get();
+
+// ✅ التحقق من وجود مجموعة قبل إضافتها
+Future<bool> isGroupExists(String grade, String section) async {
+  final query = await (select(groups)
+        ..where((g) => g.grade.equals(grade) & g.section.equals(section)))
+      .get();
+  return query.isNotEmpty;
+}
+
+// ✅ حذف مجموعة معينة مع المواد المرتبطة بها
+Future<int> deleteGroup(int id) async {
+  await (delete(subjects)..where((s) => s.groupId.equals(id))).go(); // حذف المواد المرتبطة
+  return (delete(groups)..where((g) => g.id.equals(id))).go();
+}
+
+// ✅ إضافة مادة جديدة لمجموعة
+Future<int> addSubject(SubjectsCompanion subject) => into(subjects).insert(subject);
+
+// ✅ جلب جميع المواد الخاصة بمجموعة معينة
+Future<List<Subject>> getSubjectsForGroup(int groupId) {
+  return (select(subjects)..where((s) => s.groupId.equals(groupId))).get();
+}
+
+// ✅ حذف مادة معينة
+Future<int> deleteSubject(int subjectId) => (delete(subjects)..where((s) => s.id.equals(subjectId))).go();
+
+
 }
 
 // ✅ إعداد اتصال قاعدة البيانات

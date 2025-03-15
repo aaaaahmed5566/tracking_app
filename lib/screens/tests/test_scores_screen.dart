@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' as drift;  // ✅ تحديد prefix لتجنب التعارض
-import '../models.dart' as models;
-import '../database.dart' as db;
+import 'package:drift/drift.dart' as drift; // ✅ استيراد Drift
+import '../../data/models.dart' as models;
+import '../../data/database.dart' as db;
 
 class TestScoresScreen extends StatefulWidget {
   final models.ClassGroup group;
@@ -11,7 +11,7 @@ class TestScoresScreen extends StatefulWidget {
   const TestScoresScreen({super.key, required this.group, required this.subject, this.test});
 
   @override
-  _TestScoresScreenState createState() => _TestScoresScreenState();
+  State<TestScoresScreen> createState() => _TestScoresScreenState();
 }
 
 class _TestScoresScreenState extends State<TestScoresScreen> {
@@ -34,7 +34,7 @@ class _TestScoresScreenState extends State<TestScoresScreen> {
   }
 
   Future<void> _loadStudents() async {
-    students = await database.getStudents();
+    students = await database.getStudentsForGroup(widget.group.id); // ✅ استخدام الدالة الصحيحة
     setState(() {
       for (var student in students) {
         studentScores[student.id] = TextEditingController();

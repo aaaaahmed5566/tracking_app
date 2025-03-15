@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models.dart'; // تأكد من أن هذا الملف يحتوي على TestModel
+import '../../data/models.dart'; // تأكد من أن هذا الملف يحتوي على TestModel
 import 'test_scores_screen.dart';
-import '../database.dart' as db; // ✅ استيراد قاعدة البيانات
+import '../../data/database.dart' as db; // ✅ استيراد قاعدة البيانات
 
 
 class TestListScreen extends StatefulWidget {

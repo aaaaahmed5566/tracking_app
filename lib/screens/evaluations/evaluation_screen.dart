@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models.dart' as models;
-import '../database.dart' as db;
+import '../../data/models.dart' as models;
+import '../../data/database.dart' as db;
 import 'evaluation_list_screen.dart';
 
 class EvaluationScreen extends StatefulWidget {

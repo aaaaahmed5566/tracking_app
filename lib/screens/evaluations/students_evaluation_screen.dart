@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../database.dart' as db;
+import '../../data/database.dart' as db;
 
 class StudentsEvaluationScreen extends StatefulWidget {
   final String className;
