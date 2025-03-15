@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart'; // ✅ إضافة هذا
 import 'theme.dart';
 import 'screens/onboarding_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await applyWorkaroundToOpenSqlite3OnOldAndroidVersions(); // ✅ حل لمشكلة تشغيل `sqlite3`
+
   runApp(const MyApp());
 }
 

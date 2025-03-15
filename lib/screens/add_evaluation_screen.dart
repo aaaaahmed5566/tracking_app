@@ -24,10 +24,10 @@ class AddEvaluationScreen extends StatefulWidget {
   final String subject;
 
   const AddEvaluationScreen({
-    Key? key,
+    super.key,
     required this.groupKey,
     required this.subject,
-  }) : super(key: key);
+  });
 
   @override
   State<AddEvaluationScreen> createState() => _AddEvaluationScreenState();

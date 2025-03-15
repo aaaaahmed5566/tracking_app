@@ -1,0 +1,2 @@
+C:/Users/PT_2023/Desktop/flutter/tracking_app/android/app/.cxx/Debug/465u1s73/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/PT_2023/Desktop/flutter/tracking_app/android/app/.cxx/Debug/465u1s73/armeabi-v7a/CMakeFiles/rebuild_cache.dir

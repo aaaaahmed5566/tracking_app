@@ -11,13 +11,17 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   animated_text_kit: ^4.2.2
-  drift: ^2.0.0
-  sqlite3_flutter_libs: ^0.5.0
-  path_provider: ^2.0.11
-  collection: ^1.16.0
+  drift: ^2.15.0  # ✅ تأكد من تحديثه
+  sqlite3_flutter_libs: ^0.5.18  # ✅ الإصدار المستقر
+  sqlite3: ^2.4.1  # ✅ لا تستخدم 2.7.5! استخدم هذا الإصدار المتوافق
+  ffi: ^2.1.0  # ✅ تأكد من تطابقه مع `sqlite3`
+  path: ^1.9.0  
+  path_provider: ^2.1.2
+  collection: ^1.17.2  # ✅ متوافق مع `drift`
   flutter_localizations:
     sdk: flutter
-  intl: ^0.19.0
+  intl: ^0.19.0  # ✅ تأكد من تحديث `intl`
+
 
 
 
@@ -25,9 +29,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
-  drift_dev: ^2.0.0
-  build_runner: ^2.0.0
+  flutter_lints: ^4.0.0  # ✅ تحديث lints
+  drift_dev: ^2.26.0  # ✅ تأكد من تحديثه
+  build_runner: ^2.4.15  # ✅ تأكد من تحديثه
+
+
+
 
 flutter:
   uses-material-design: true

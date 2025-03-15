@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
-import '../data.dart'; // يحتوي على: List<ClassGroup> groups و Map<String, List<Student>> studentGroupsGlobal
+import '../database.dart';
 import 'group_details_screen.dart';
 
-class StudentRegistrationScreen extends StatelessWidget {
+class StudentRegistrationScreen extends StatefulWidget {
   const StudentRegistrationScreen({super.key});
+
+  @override
+  _StudentRegistrationScreenState createState() => _StudentRegistrationScreenState();
+}
+
+class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
+  final AppDatabase database = AppDatabase();
+  late Future<List<Student>> studentsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    studentsFuture = database.getStudents(); // ✅ جلب جميع الطلاب من قاعدة البيانات
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,36 +25,55 @@ class StudentRegistrationScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("تسجيل الطلاب"),
       ),
-      body: groups.isEmpty
-          ? const Center(child: Text("لا توجد مجموعات مسجلة"))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: groups.length,
-              itemBuilder: (context, index) {
-                final group = groups[index];
-                final groupKey = "${group.grade}-${group.section}";
-                final studentCount =
-                    studentGroupsGlobal[groupKey]?.length ?? 0;
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  child: ListTile(
-                    title: Text("الصف ${group.grade} - الفصل ${group.section}"),
-                    subtitle: Text(
-                        "المواد: ${group.subjects.isEmpty ? "لا توجد مواد" : group.subjects.join(', ')}\nعدد الطلاب: $studentCount"),
-                    trailing: const Icon(Icons.arrow_forward),
-                    onTap: () {
-                      // عند الضغط على المجموعة، ينتقل المستخدم إلى صفحة تفاصيل المجموعة
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => GroupDetailsScreen(groupKey: groupKey),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+      body: FutureBuilder<List<Student>>(
+        future: studentsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text("حدث خطأ أثناء تحميل البيانات"));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text("لا توجد مجموعات مسجلة"));
+          }
+
+          List<Student> students = snapshot.data!;
+          Map<String, List<Student>> groupedStudents = {};
+
+          for (var student in students) {
+            String key = "${student.grade}-${student.section}"; // ✅ ربط الطلاب بالصف والفصل
+            if (!groupedStudents.containsKey(key)) {
+              groupedStudents[key] = [];
+            }
+            groupedStudents[key]!.add(student);
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: groupedStudents.keys.length,
+            itemBuilder: (context, index) {
+              String groupKey = groupedStudents.keys.elementAt(index);
+              List<Student> groupStudents = groupedStudents[groupKey]!;
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: ListTile(
+                  title: Text("الصف: ${groupKey.split('-')[0]} - الفصل: ${groupKey.split('-')[1]}"),
+                  subtitle: Text("عدد الطلاب: ${groupStudents.length}"),
+                  trailing: const Icon(Icons.arrow_forward),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GroupDetailsScreen(groupKey: groupKey),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
